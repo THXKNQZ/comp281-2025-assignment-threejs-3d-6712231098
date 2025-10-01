@@ -26,13 +26,58 @@ function main() {
 	// TODO: วาดฉากทิวทัศน์ 3D ด้วย Three.js
 	// ต้องมีครบ 6 อย่าง: ภูเขา, พระอาทิตย์, ท้องนา, ต้นไม้, บ้าน/กระท่อม, แม่น้ำ
 	// องค์ประกอบอื่น ๆ เพิ่มเติมได้ตามต้องการ (เช่น ท้องฟ้า, ก้อนเมฆ ฯลฯ)
-	const geometry = new THREE.PlaneGeometry(8, 10);
+	const geometry = new THREE.PlaneGeometry(8, 12);
   const material = new THREE.MeshStandardMaterial({ color: 0x898989, side: THREE.DoubleSide,});
   const plane = new THREE.Mesh(geometry, material);
 	plane.rotation.x = Math.PI / 2;
 	plane.receiveShadow = true;
   M3D.scene.add(plane);
 	
+
+	//ภูเขา
+	const motigeo = new THREE.ConeGeometry( 1.75, 2, 10 );
+	const motimat = new THREE.MeshStandardMaterial( {color: 0x4caf50} );
+	const mountain1 = new THREE.Mesh( motigeo, motimat );
+	mountain1.position.set(2.4, 1, -4.5);
+	mountain1.castShadow = true;
+	M3D.scene.add( mountain1 );
+
+	const motigeo2 = new THREE.ConeGeometry( 2, 3, 10 );
+	const motimat2 = new THREE.MeshStandardMaterial( {color: 0x388e3c} );
+	const mountain2 = new THREE.Mesh( motigeo2, motimat2 );
+	mountain2.position.set(-2.2, 1.5, -4.2);
+	mountain2.castShadow = true;
+	M3D.scene.add( mountain2 );
+
+	const motigeo3 = new THREE.ConeGeometry( 1.7, 1.5, 10 );
+	const motimat3 = new THREE.MeshStandardMaterial( {color: 0x2e7d32} );
+	const mountain3 = new THREE.Mesh( motigeo3, motimat3 );
+	mountain3.position.set(0, 0.75, -4.5);
+	mountain3.castShadow = true;
+	M3D.scene.add( mountain3 );
+
+	const grop = new THREE.Group();
+	mountain3.add(grop);
+
+
+
+	const sunGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+	const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffeb3b });
+	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+	sun.position.set(3, 5, -5);
+	grop.add(sun);
+
+//  แม่น้ำ
+	const riverGeometry = new THREE.PlaneGeometry(8, 1);
+	const riverMaterial = new THREE.MeshStandardMaterial({ color: 0x4fc3f7, side: THREE.DoubleSide });
+	const river = new THREE.Mesh(riverGeometry, riverMaterial);
+	river.rotation.x = -Math.PI / 2;
+	river.position.set(0, 0.02, -2); 
+	river.receiveShadow = true;
+	M3D.scene.add(river);
+
+
+
 
 	function addGLTFModel({ path, position, scale, rotationY = 0 }) {
   const loader = new GLTFLoader();
@@ -107,16 +152,21 @@ addGLTFModel({
 	scale: [2, 2, 2],
 	rotationY: -Math.PI/2,
 })
+addGLTFModel({
+	path: './Model/stone_bridge.glb',
+	position: [0, 0.18, -2],
+	scale: [0.6, 0.5, 0.6],
+	rotationY: Math.PI/2,
+})
 
-
-const amblight = new THREE.AmbientLight(0x404040,10);
+const amblight = new THREE.AmbientLight(0x404040,20);
 	M3D.scene.add(amblight);
-	const light = new THREE.PointLight( 0x404040, 1000);
+	const light = new THREE.PointLight( 0x404040, 20);
 	light.shadow.normalBias = 1;
-	light.position.set( 0, 5, 0 );
+	light.position.set( 0, 2, 0 );
 	light.castShadow = true;
 	M3D.scene.add( light );
-	
+
 	// Stats
 	const stats = new Stats(); // สร้าง Stats เพื่อตรวจสอบประสิทธิภาพ
 	document.body.appendChild(stats.dom); // เพิ่ม Stats ลงใน body ของ HTML
@@ -125,11 +175,15 @@ const amblight = new THREE.AmbientLight(0x404040,10);
 	const gui = new GUI(); // สร้าง GUI สำหรับปรับแต่งค่าต่างๆ 
 
 
+
+	const clocks = new THREE.Clock(); // สร้างนาฬิกาเพื่อติดตามเวลา
 	function animate() {
 		M3D.controls.update(); // อัปเดต controls
 		stats.update(); // อัปเดต Stats
 		FPS.update(); // อัปเดต FPS
 
+		const deltatime = clocks.getDelta(); // เวลาที่ผ่านไปตั้งแต่เฟรมล่าสุด
+		grop.rotation.z += deltatime * Math.PI / 8; // หมุนกลุ่มภูเขาและพระอาทิตย์รอบแกน Y
 		// UPDATE state of objects here
 		// TODO: อัปเดตสถานะของวัตถุต่างๆ ที่ต้องการในแต่ละเฟรม (เช่น การเคลื่อนที่, การหมุน ฯลฯ)
 
@@ -137,6 +191,6 @@ const amblight = new THREE.AmbientLight(0x404040,10);
 		// RENDER scene and camera
 		M3D.renderer.render(M3D.scene, M3D.camera); // เรนเดอร์ฉาก
 		M3D.cssRenderer.render(M3D.scene, M3D.camera); // เรนเดอร์ CSS2DRenderer
-		console.log(`FPS: ${FPS.fps}`); // แสดงค่า FPS ในคอนโซล
+		//console.log(`FPS: ${FPS.fps}`); // แสดงค่า FPS ในคอนโซล
 	}
 }
