@@ -1,7 +1,4 @@
 import * as THREE from 'three'; // three จากที่กำหนดใน importmap
-import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { M3D, createLabel2D, FPS } from './utils-module.js';
@@ -26,16 +23,48 @@ function main() {
 	// TODO: วาดฉากทิวทัศน์ 3D ด้วย Three.js
 	// ต้องมีครบ 6 อย่าง: ภูเขา, พระอาทิตย์, ท้องนา, ต้นไม้, บ้าน/กระท่อม, แม่น้ำ
 	// องค์ประกอบอื่น ๆ เพิ่มเติมได้ตามต้องการ (เช่น ท้องฟ้า, ก้อนเมฆ ฯลฯ)
-	const geometry = new THREE.PlaneGeometry(8, 12);
-  const material = new THREE.MeshStandardMaterial({ color: 0x898989, side: THREE.DoubleSide,});
-  const plane = new THREE.Mesh(geometry, material);
+
+	//สร้างพื้นหินน
+	const planegeometry = new THREE.PlaneGeometry(8, 12);
+  const planematerial = new THREE.MeshStandardMaterial({ color: 0x898989, side: THREE.DoubleSide,});
+  const plane = new THREE.Mesh(planegeometry, planematerial);
 	plane.rotation.x = Math.PI / 2;
 	plane.receiveShadow = true;
   M3D.scene.add(plane);
 	
+	//พื้นนาข้าว
+	const boxgeo = new THREE.BoxGeometry(1, 0.1, 1);
+	const boxmat = new THREE.MeshStandardMaterial( {color: 0x6d4c41} );
+	const box = new THREE.Mesh( boxgeo, boxmat );
+	box.position.set(3, -0.04, -1);
+	box.receiveShadow = true;
+	M3D.scene.add( box );
+
+
+	//ฟังชั่่นสร้างพืช
+	function addBox2(position= [0,0,0] ,size = [0.125,0.125,0.125], color= 0x81c784) {
+		const boxgeo2 = new THREE.BoxGeometry(...size);
+		const boxmat2 = new THREE.MeshStandardMaterial( {color: color} );
+		const box2 = new THREE.Mesh( boxgeo2, boxmat2 );
+		box2.position.set(...position);
+		box2.castShadow = true;
+		box2.receiveShadow = true;
+		M3D.scene.add(box2);
+	}
+
+//เรียกใช้ฟังชั่นสร้างพืช
+	addBox2([3,-0.04,-0.7]);
+	addBox2([2.6,-0.04,-0.7]);
+	addBox2([3.4,-0.04,-0.7]);
+	addBox2([3,-0.04,-1]);
+	addBox2([2.6,-0.04,-1]);
+	addBox2([3.4,-0.04,-1]);
+	addBox2([3,-0.04,-1.3]);
+	addBox2([2.6,-0.04,-1.3]);
+	addBox2([3.4,-0.04,-1.3]);
 
 	//ภูเขา
-	const motigeo = new THREE.ConeGeometry( 1.75, 2, 10 );
+	const motigeo = new THREE.ConeGeometry( 1.75, 2, 10 ); 
 	const motimat = new THREE.MeshStandardMaterial( {color: 0x4caf50} );
 	const mountain1 = new THREE.Mesh( motigeo, motimat );
 	mountain1.position.set(2.4, 1, -4.5);
@@ -56,18 +85,17 @@ function main() {
 	mountain3.castShadow = true;
 	M3D.scene.add( mountain3 );
 
-	const grop = new THREE.Group();
-	mountain3.add(grop);
+	const grop = new THREE.Group(); //สร้่างกลุ่ม grop
+	mountain3.add(grop); //เพิ่ม grop  ไปในภูเขาลูกกลางให้เป็นพ่อโหนดดดดด
 
-
-
+	// พระอาทิตย์
 	const sunGeometry = new THREE.SphereGeometry(0.5, 32, 32);
 	const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffeb3b });
 	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-	sun.position.set(3, 5, -5);
-	grop.add(sun);
+	sun.position.set(4, 3, 0);
+	grop.add(sun); //เพิ่มดวงอาทิตย์ไปใน grop เพื่อให้เป็นลูกของภูเขารอทำอนิเมชัน
 
-//  แม่น้ำ
+//  แม่น้ำ 
 	const riverGeometry = new THREE.PlaneGeometry(8, 1);
 	const riverMaterial = new THREE.MeshStandardMaterial({ color: 0x4fc3f7, side: THREE.DoubleSide });
 	const river = new THREE.Mesh(riverGeometry, riverMaterial);
@@ -78,8 +106,8 @@ function main() {
 
 
 
-
-	function addGLTFModel({ path, position, scale, rotationY = 0 }) {
+//ฟังชั่น โหลดโมเดล 3D
+	function addGLTFModel({ path, position, scale, rotationY = 0 }) { //ให้รับพารามิเตอร์เป็น path, position, scale, rotationY 
   const loader = new GLTFLoader();
   loader.load(
     path,
@@ -107,65 +135,70 @@ function main() {
 }
 
 addGLTFModel({
-  path: './Model/fantasy_house.glb',
+  path: './Model/fantasy_house.glb', //เปลี่ยน path เป็นที่เก็บโมเดลบ้าน
   position: [-3, 0, 4],
   scale: [2, 2, 2],
   rotationY: Math.PI,
 });
 addGLTFModel({
-  path: './Model/fantasy_house.glb',
-  position: [2.5, 0, 4],
+  path: './Model/fantasy_house.glb', //เปลี่ยน path เป็นที่เก็บโมเดลบ้านหลัง 2
+  position: [2.5, 0, 4], 
   scale: [2, 2, 2],
   rotationY: Math.PI,
 });
 addGLTFModel({
-  path: './Model/house03.glb',
+  path: './Model/house03.glb', //เปลี่ยน path เป็นที่เก็บโมเดลบ้านหลัง 3
   position: [0, 0, 4],
   scale: [0.15, 0.15, 0.15],
   rotationY: Math.PI,
 });
 addGLTFModel({
-  path: './Model/nampu2.glb',
+  path: './Model/nampu2.glb', //เปลี่ยน path เป็นที่เก็บโมเดลน้ำพุ
   position: [0, 0.09, 1],
   scale: [0.25, 0.7, 0.25],
   rotationY: Math.PI,
 });
 addGLTFModel({
-	path: './Model/tree.glb',
+	path: './Model/tree.glb', //เปลี่ยน path เป็นที่เก็บโมเดลต้นไม้
 	position: [-1.4, 0, 4],
 	scale: [0.075, 0.09, 0.075],
 })
 addGLTFModel({
-	path: './Model/tree.glb',
+	path: './Model/tree.glb', //เปลี่ยน path เป็นที่เก็บโมเดลต้นไม้
 	position: [1.15, 0, 4],
 	scale: [0.075, 0.09, 0.075],
 })
 addGLTFModel({
-	path: './Model/fantasy_house.glb',
+	path: './Model/fantasy_house.glb', //เปลี่ยน path เป็นที่เก็บโมเดลบ้าน
 	position: [-3, 0, 1],
 	scale: [2, 2, 2],
 	rotationY: Math.PI/2,
 })
 addGLTFModel({
-	path: './Model/fantasy_house.glb',
+	path: './Model/fantasy_house.glb', //เปลี่ยน path เป็นที่เก็บโมเดลบ้าน
 	position: [3, 0, 1],
 	scale: [2, 2, 2],
 	rotationY: -Math.PI/2,
 })
 addGLTFModel({
-	path: './Model/stone_bridge.glb',
+	path: './Model/stone_bridge.glb', //เปลี่ยน path เป็นที่เก็บโมเดลสะพานหิน
 	position: [0, 0.18, -2],
 	scale: [0.6, 0.5, 0.6],
 	rotationY: Math.PI/2,
 })
 
-const amblight = new THREE.AmbientLight(0x404040,20);
+
+
+//เเสงต่างๆ 
+
+	const amblight = new THREE.AmbientLight(0x404040, 10); //สร้างเเสงรอบทิศท่างหรือเเสงสว่างทั่วไปนั่นเเหละ
 	M3D.scene.add(amblight);
-	const light = new THREE.PointLight( 0x404040, 20);
-	light.shadow.normalBias = 1;
-	light.position.set( 0, 2, 0 );
-	light.castShadow = true;
-	M3D.scene.add( light );
+	const sunLight = new THREE.DirectionalLight(0xfff7b2, 1); //สร้างเเสงทิศทางให้ใช้กับดวงอาทิตย์
+	sunLight.position.set(4, 3, 0);
+	sunLight.castShadow = true;
+	M3D.scene.add(sunLight);
+	grop.add(sunLight); //เพิ่มเเสงไปใน grop เพื่อให้เป็นลูกของภูเขารอทำอนิเมชัน
+
 
 	// Stats
 	const stats = new Stats(); // สร้าง Stats เพื่อตรวจสอบประสิทธิภาพ
@@ -183,7 +216,7 @@ const amblight = new THREE.AmbientLight(0x404040,20);
 		FPS.update(); // อัปเดต FPS
 
 		const deltatime = clocks.getDelta(); // เวลาที่ผ่านไปตั้งแต่เฟรมล่าสุด
-		grop.rotation.z += deltatime * Math.PI / 8; // หมุนกลุ่มภูเขาและพระอาทิตย์รอบแกน Y
+		grop.rotation.z += deltatime * Math.PI / 8 ; // หมุนกลุ่มภูเขาและพระอาทิตย์รอบแกน z
 		// UPDATE state of objects here
 		// TODO: อัปเดตสถานะของวัตถุต่างๆ ที่ต้องการในแต่ละเฟรม (เช่น การเคลื่อนที่, การหมุน ฯลฯ)
 
